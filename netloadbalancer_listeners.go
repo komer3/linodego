@@ -128,6 +128,6 @@ func (c *Client) DeleteNetLoadBalancerListener(ctx context.Context, netloadbalan
 // Use this to update the weights of the nodes of a NetLoadBalancerListener in case of frequent changes
 // High frequency updates are allowed. No response is returned.
 func (c *Client) UpdateNetLoadBalancerListenerNodeWeights(ctx context.Context, netloadbalancerID int, listenerID int, opts NetLoadBalancerListenerNodeWeightsUpdateOptions) error {
-	e := formatAPIPath("netloadbalancers/%d/listeners/%d/nodes", netloadbalancerID, listenerID)
+	e := formatAPIPath("netloadbalancers/%d/listeners/%d/nodes-weights", netloadbalancerID, listenerID)
 	return doPOSTRequestNoResponseBody(ctx, c, e, opts)
 }
