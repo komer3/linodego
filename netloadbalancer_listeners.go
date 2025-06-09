@@ -39,7 +39,7 @@ type NetLoadBalancerListenerUpdateOptions struct {
 	// The protocol of this NetLoadBalancerListener.
 	Protocol string `json:"protocol,omitempty"`
 	// The port of this NetLoadBalancerListener.
-	Port int `json:"port,omitempty"`
+	Port int `json:"port"`
 	// The label of this NetLoadBalancerListener.
 	Label string `json:"label,omitempty"`
 	// The nodes of this NetLoadBalancerListener.

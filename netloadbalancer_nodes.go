@@ -37,10 +37,12 @@ type NetLoadBalancerNodeCreateOptions struct {
 }
 
 type NetLoadBalancerNodeUpdateOptions struct {
-	// The ID of the node to update.
-	ID int `json:"id"`
 	// The label of the node.
 	Label string `json:"label"`
+	// The IPv6 address of the node.
+	AddressV6 string `json:"address_v6"`
+	// The weight of the node.
+	Weight int `json:"weight,omitempty"`
 }
 
 type NetLoadBalancerNodeLabelUpdateOptions struct {
@@ -81,8 +83,9 @@ func (i *NetLoadBalancerNode) GetCreateOptions() NetLoadBalancerNodeCreateOption
 
 func (i *NetLoadBalancerNode) GetUpdateOptions() NetLoadBalancerNodeUpdateOptions {
 	return NetLoadBalancerNodeUpdateOptions{
-		ID:    i.ID,
 		Label: i.Label,
+		AddressV6: i.AddressV6,
+		Weight: i.Weight,
 	}
 }
 
