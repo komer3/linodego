@@ -4,6 +4,15 @@ import (
 	"context"
 )
 
+type InterfacesForNewLinodes string
+
+const (
+	LegacyConfigOnly                    InterfacesForNewLinodes = "legacy_config_only"
+	LegacyConfigDefaultButLinodeAllowed InterfacesForNewLinodes = "legacy_config_default_but_linode_allowed"
+	LinodeDefaultButLegacyConfigAllowed InterfacesForNewLinodes = "linode_default_but_legacy_config_allowed"
+	LinodeOnly                          InterfacesForNewLinodes = "linode_only"
+)
+
 // AccountSettings are the account wide flags or plans that effect new resources
 type AccountSettings struct {
 	// The default backups enrollment status for all new Linodes for all users on the account.  When enabled, backups are mandatory per instance.
@@ -24,6 +33,10 @@ type AccountSettings struct {
 	// The slug of the maintenance policy associated with the account.
 	// NOTE: MaintenancePolicy can only be used with v4beta.
 	MaintenancePolicy string `json:"maintenance_policy"`
+
+	// NOTE: Interfaces for new linode setting may not currently be available to all users.
+	// A new configuration flag defines whether new Linodes can use Linode and/or legacy config interfaces.
+	InterfacesForNewLinodes InterfacesForNewLinodes `json:"interfaces_for_new_linodes"`
 }
 
 // AccountSettingsUpdateOptions are the updateable account wide flags or plans that effect new resources.
@@ -37,6 +50,10 @@ type AccountSettingsUpdateOptions struct {
 	// The slug of the maintenance policy to set the account to.
 	// NOTE: MaintenancePolicy can only be used with v4beta.
 	MaintenancePolicy *string `json:"maintenance_policy,omitempty"`
+
+	// NOTE: Interfaces for new linode setting may not currently be available to all users.
+	// A new configuration flag defines whether new Linodes can use Linode and/or legacy config interfaces.
+	InterfacesForNewLinodes *InterfacesForNewLinodes `json:"interfaces_for_new_linodes"`
 }
 
 // GetAccountSettings gets the account wide flags or plans that effect new resources
