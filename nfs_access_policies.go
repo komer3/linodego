@@ -1,6 +1,10 @@
 package linodego
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+	"time"
+)
 
 type NFSMTLSMode string
 
@@ -17,59 +21,126 @@ const (
 	NFSAccessPolicyStatusActive   NFSAccessPolicyStatus = "active"
 	NFSAccessPolicyStatusUpdating NFSAccessPolicyStatus = "updating"
 	NFSAccessPolicyStatusDeleting NFSAccessPolicyStatus = "deleting"
+	NFSAccessPolicyStatusError    NFSAccessPolicyStatus = "error"
 )
 
-type NFSRootSquashMode string
+type NFSSquashPolicy string
 
 const (
-	NFSRootSquashModeNone       NFSRootSquashMode = "none"
-	NFSRootSquashModeRootSquash NFSRootSquashMode = "root_squash"
-	NFSRootSquashModeAllSquash  NFSRootSquashMode = "all_squash"
+	NFSSquashPolicyNone       NFSSquashPolicy = "none"
+	NFSSquashPolicyRootSquash NFSSquashPolicy = "root_squash"
+	NFSSquashPolicyAllSquash  NFSSquashPolicy = "all_squash"
 )
 
-type NFSPosixOverride struct {
-	UID int `json:"uid"`
-	GID int `json:"gid"`
+type NFSSpaceAccessPolicyVPC struct {
+	ID      int                             `json:"id"`
+	Label   *string                         `json:"label"`
+	URL     *string                         `json:"url"`
+	Range   *string                         `json:"range"`
+	Subnets []NFSSpaceAccessPolicyVPCSubnet `json:"subnets"`
+}
+
+type NFSSpaceAccessPolicyVPCSubnet struct {
+	ID    int     `json:"id"`
+	Label *string `json:"label"`
+	URL   *string `json:"url"`
+	Range *string `json:"range"`
+}
+
+type NFSSpaceAccessPolicyVPCOptions struct {
+	ID      int   `json:"id"`
+	Subnets []int `json:"subnets,omitzero"`
+}
+
+type NFSFilesystemAccessPolicyLinode struct {
+	ID    int     `json:"id"`
+	Label *string `json:"label"`
+	URL   *string `json:"url"`
+	IPv6  *string `json:"ipv6"`
 }
 
 type NFSSpaceAccessPolicy struct {
-	SpaceID      string                `json:"space_id"`
-	Label        string                `json:"label"`
-	Enabled      bool                  `json:"enabled"`
-	VPCIDs       []string              `json:"vpc_ids"`
-	AllowedCIDRs []string              `json:"allowed_cidrs"`
-	MTLSMode     NFSMTLSMode           `json:"mtls_mode"`
-	Status       NFSAccessPolicyStatus `json:"status"`
+	SpaceID    int                       `json:"space_id"`
+	Label      string                    `json:"label"`
+	Enabled    bool                      `json:"enabled"`
+	VPCACL     []NFSSpaceAccessPolicyVPC `json:"vpc_acl"`
+	MTLSCACert *string                   `json:"mtls_ca_cert"`
+	MTLSMode   NFSMTLSMode               `json:"mtls_mode"`
+	Status     NFSAccessPolicyStatus     `json:"status"`
+	Created    *time.Time                `json:"-"`
+	Updated    *time.Time                `json:"-"`
 }
 
 type NFSSpaceAccessPolicyUpdateOptions struct {
-	Label        string      `json:"label,omitzero"`
-	Enabled      *bool       `json:"enabled,omitzero"`
-	VPCIDs       []string    `json:"vpc_ids,omitzero"`
-	AllowedCIDRs []string    `json:"allowed_cidrs,omitzero"`
-	MTLSCACert   *string     `json:"mtls_ca_cert,omitzero"`
-	MTLSMode     NFSMTLSMode `json:"mtls_mode,omitzero"`
+	Label      *string                           `json:"label,omitzero"`
+	Enabled    *bool                             `json:"enabled,omitzero"`
+	VPCs       *[]NFSSpaceAccessPolicyVPCOptions `json:"vpcs,omitzero"`
+	MTLSCACert *string                           `json:"mtls_ca_cert,omitzero"`
+	MTLSMode   *NFSMTLSMode                      `json:"mtls_mode,omitzero"`
 }
 
 type NFSFilesystemAccessPolicy struct {
-	FilesystemID  string                `json:"filesystem_id"`
-	Label         string                `json:"label"`
-	Enabled       bool                  `json:"enabled"`
-	LinodeIDs     []int                 `json:"linode_ids"`
-	LinodeIPs     []string              `json:"linode_ips"`
-	RootSquash    NFSRootSquashMode     `json:"root_squash"`
-	Protocols     []NFSProtocolVersion  `json:"protocols"`
-	PosixOverride *NFSPosixOverride     `json:"posix_override"`
-	Status        NFSAccessPolicyStatus `json:"status"`
+	FilesystemID int                               `json:"filesystem_id"`
+	Label        string                            `json:"label"`
+	Enabled      bool                              `json:"enabled"`
+	LinodeACL    []NFSFilesystemAccessPolicyLinode `json:"linode_acl"`
+	SquashPolicy NFSSquashPolicy                   `json:"squash_policy"`
+	Protocols    []NFSProtocolVersion              `json:"protocols"`
+	Status       NFSAccessPolicyStatus             `json:"status"`
+	Created      *time.Time                        `json:"-"`
+	Updated      *time.Time                        `json:"-"`
 }
 
 type NFSFilesystemAccessPolicyUpdateOptions struct {
-	Label         string               `json:"label,omitzero"`
-	Enabled       *bool                `json:"enabled,omitzero"`
-	LinodeIDs     []int                `json:"linode_ids,omitzero"`
-	RootSquash    NFSRootSquashMode    `json:"root_squash,omitzero"`
-	Protocols     []NFSProtocolVersion `json:"protocols,omitzero"`
-	PosixOverride *NFSPosixOverride    `json:"posix_override,omitzero"`
+	Label        *string               `json:"label,omitzero"`
+	Enabled      *bool                 `json:"enabled,omitzero"`
+	LinodeIDs    *[]int                `json:"linode_ids,omitzero"`
+	SquashPolicy *NFSSquashPolicy      `json:"squash_policy,omitzero"`
+	Protocols    *[]NFSProtocolVersion `json:"protocols,omitzero"`
+}
+
+func (n *NFSSpaceAccessPolicy) UnmarshalJSON(b []byte) error {
+	type Mask NFSSpaceAccessPolicy
+
+	p := struct {
+		*Mask
+
+		Created *time.Time `json:"created"`
+		Updated *time.Time `json:"updated"`
+	}{
+		Mask: (*Mask)(n),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	n.Created = p.Created
+	n.Updated = p.Updated
+
+	return nil
+}
+
+func (n *NFSFilesystemAccessPolicy) UnmarshalJSON(b []byte) error {
+	type Mask NFSFilesystemAccessPolicy
+
+	p := struct {
+		*Mask
+
+		Created *time.Time `json:"created"`
+		Updated *time.Time `json:"updated"`
+	}{
+		Mask: (*Mask)(n),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	n.Created = p.Created
+	n.Updated = p.Updated
+
+	return nil
 }
 
 func (c *Client) GetNFSSpaceAccessPolicy(ctx context.Context, spaceID string) (*NFSSpaceAccessPolicy, error) {

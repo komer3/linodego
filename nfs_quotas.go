@@ -1,6 +1,10 @@
 package linodego
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+	"time"
+)
 
 type NFSQuotaStatus string
 
@@ -20,51 +24,114 @@ const (
 )
 
 type NFSQuota struct {
-	FilesystemID      string         `json:"filesystem_id"`
+	FilesystemID      int            `json:"filesystem_id"`
 	UsedCapacityBytes int64          `json:"used_capacity_bytes"`
-	PathQuotas        []NFSPathQuota `json:"path_quotas"`
+	PathLimits        []NFSPathLimit `json:"path_limits"`
 	Status            NFSQuotaStatus `json:"status"`
+	Created           *time.Time     `json:"-"`
+	Updated           *time.Time     `json:"-"`
 }
 
-type NFSPathQuota struct {
-	Path                   string              `json:"path"`
-	Managed                bool                `json:"managed"`
-	CapacitySoftLimitBytes *int64              `json:"capacity_soft_limit_bytes"`
-	CapacityHardLimitBytes *int64              `json:"capacity_hard_limit_bytes"`
-	FilesSoftLimit         *int64              `json:"files_soft_limit"`
-	FilesHardLimit         *int64              `json:"files_hard_limit"`
-	GracePeriod            *string             `json:"grace_period"`
-	UserGroupQuotas        *NFSUserGroupQuotas `json:"user_group_quotas"`
+type NFSPathLimit struct {
+	Path             string              `json:"path"`
+	MaxCapacityBytes *int64              `json:"max_capacity_bytes"`
+	MaxFileCount     *int64              `json:"max_file_count"`
+	GracePeriod      *string             `json:"grace_period"`
+	UserGroupConfig  *NFSUserGroupConfig `json:"user_group_config"`
 }
 
-type NFSUserGroupQuotas struct {
-	Enabled          bool                     `json:"enabled"`
-	DefaultUserRule  *NFSQuotaRule            `json:"default_user_rule"`
-	DefaultGroupRule *NFSQuotaRule            `json:"default_group_rule"`
-	UserRules        []NFSIdentifiedQuotaRule `json:"user_rules"`
-	GroupRules       []NFSIdentifiedQuotaRule `json:"group_rules"`
+type NFSUserGroupConfig struct {
+	Enabled           bool                        `json:"enabled"`
+	DefaultUserLimit  *NFSCapacityLimit           `json:"default_user_limit"`
+	DefaultGroupLimit *NFSCapacityLimit           `json:"default_group_limit"`
+	UserLimits        []NFSIdentifiedLimit        `json:"user_limits"`
+	GroupLimits       []NFSIdentifiedLimit        `json:"group_limits"`
+	UserGroupLimits   []NFSUserGroupCombinedLimit `json:"user_group_limits"`
 }
 
-type NFSQuotaRule struct {
-	CapacitySoftLimitBytes *int64  `json:"capacity_soft_limit_bytes"`
-	CapacityHardLimitBytes *int64  `json:"capacity_hard_limit_bytes"`
-	FilesSoftLimit         *int64  `json:"files_soft_limit"`
-	FilesHardLimit         *int64  `json:"files_hard_limit"`
-	GracePeriod            *string `json:"grace_period"`
+type NFSCapacityLimit struct {
+	MaxCapacityBytes *int64 `json:"max_capacity_bytes"`
+	MaxFileCount     *int64 `json:"max_file_count"`
 }
 
-type NFSIdentifiedQuotaRule struct {
-	IdentifierType         NFSQuotaRuleIdentifierType `json:"identifier_type"`
-	Identifier             string                     `json:"identifier"`
-	CapacitySoftLimitBytes *int64                     `json:"capacity_soft_limit_bytes"`
-	CapacityHardLimitBytes *int64                     `json:"capacity_hard_limit_bytes"`
-	FilesSoftLimit         *int64                     `json:"files_soft_limit"`
-	FilesHardLimit         *int64                     `json:"files_hard_limit"`
-	GracePeriod            *string                    `json:"grace_period"`
+type NFSIdentifiedLimit struct {
+	IdentifierType   NFSQuotaRuleIdentifierType `json:"identifier_type"`
+	Identifier       string                     `json:"identifier"`
+	MaxCapacityBytes *int64                     `json:"max_capacity_bytes"`
+	MaxFileCount     *int64                     `json:"max_file_count"`
+}
+
+type NFSUserGroupCombinedLimit struct {
+	User             NFSUserGroupLimitIdentity `json:"user"`
+	Group            NFSUserGroupLimitIdentity `json:"group"`
+	MaxCapacityBytes *int64                    `json:"max_capacity_bytes"`
+	MaxFileCount     *int64                    `json:"max_file_count"`
+}
+
+type NFSUserGroupLimitIdentity struct {
+	IdentifierType NFSQuotaRuleIdentifierType `json:"identifier_type"`
+	Identifier     string                     `json:"identifier"`
 }
 
 type NFSQuotaUpdateOptions struct {
-	PathQuotas []NFSPathQuota `json:"path_quotas"`
+	PathLimits []NFSPathLimitUpdateOptions `json:"path_limits"`
+}
+
+type NFSPathLimitUpdateOptions struct {
+	Path             string                            `json:"path"`
+	MaxCapacityBytes **int64                           `json:"max_capacity_bytes,omitzero"`
+	MaxFileCount     **int64                           `json:"max_file_count,omitzero"`
+	UserGroupConfig  **NFSUserGroupConfigUpdateOptions `json:"user_group_config,omitzero"`
+}
+
+type NFSUserGroupConfigUpdateOptions struct {
+	Enabled           bool                                      `json:"enabled"`
+	DefaultUserLimit  **NFSCapacityLimitUpdateOptions           `json:"default_user_limit,omitzero"`
+	DefaultGroupLimit **NFSCapacityLimitUpdateOptions           `json:"default_group_limit,omitzero"`
+	UserLimits        *[]NFSIdentifiedLimitUpdateOptions        `json:"user_limits,omitzero"`
+	GroupLimits       *[]NFSIdentifiedLimitUpdateOptions        `json:"group_limits,omitzero"`
+	UserGroupLimits   *[]NFSUserGroupCombinedLimitUpdateOptions `json:"user_group_limits,omitzero"`
+}
+
+type NFSCapacityLimitUpdateOptions struct {
+	MaxCapacityBytes **int64 `json:"max_capacity_bytes,omitzero"`
+	MaxFileCount     **int64 `json:"max_file_count,omitzero"`
+}
+
+type NFSIdentifiedLimitUpdateOptions struct {
+	IdentifierType   NFSQuotaRuleIdentifierType `json:"identifier_type"`
+	Identifier       string                     `json:"identifier"`
+	MaxCapacityBytes **int64                    `json:"max_capacity_bytes,omitzero"`
+	MaxFileCount     **int64                    `json:"max_file_count,omitzero"`
+}
+
+type NFSUserGroupCombinedLimitUpdateOptions struct {
+	User             NFSUserGroupLimitIdentity `json:"user"`
+	Group            NFSUserGroupLimitIdentity `json:"group"`
+	MaxCapacityBytes **int64                   `json:"max_capacity_bytes,omitzero"`
+	MaxFileCount     **int64                   `json:"max_file_count,omitzero"`
+}
+
+func (n *NFSQuota) UnmarshalJSON(b []byte) error {
+	type Mask NFSQuota
+
+	p := struct {
+		*Mask
+
+		Created *time.Time `json:"created"`
+		Updated *time.Time `json:"updated"`
+	}{
+		Mask: (*Mask)(n),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	n.Created = p.Created
+	n.Updated = p.Updated
+
+	return nil
 }
 
 func (c *Client) GetNFSQuota(ctx context.Context, spaceID string, filesystemID string) (*NFSQuota, error) {

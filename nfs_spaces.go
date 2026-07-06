@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSSpaceStatus string
@@ -18,10 +16,9 @@ const (
 )
 
 type NFSSpace struct {
-	ID          string         `json:"id"`
+	ID          int            `json:"id"`
 	Label       string         `json:"label"`
 	Description *string        `json:"description"`
-	Default     bool           `json:"default"`
 	Status      NFSSpaceStatus `json:"status"`
 	Created     *time.Time     `json:"-"`
 	Updated     *time.Time     `json:"-"`
@@ -29,15 +26,15 @@ type NFSSpace struct {
 }
 
 type NFSSpaceCreateOptions struct {
-	Label       string   `json:"label"`
-	Description *string  `json:"description,omitzero"`
-	Tags        []string `json:"tags,omitzero"`
+	Label       string    `json:"label"`
+	Description **string  `json:"description,omitzero"`
+	Tags        *[]string `json:"tags,omitzero"`
 }
 
 type NFSSpaceUpdateOptions struct {
-	Label       string   `json:"label,omitzero"`
-	Description *string  `json:"description,omitzero"`
-	Tags        []string `json:"tags,omitzero"`
+	Label       *string   `json:"label,omitzero"`
+	Description **string  `json:"description,omitzero"`
+	Tags        *[]string `json:"tags,omitzero"`
 }
 
 func (n *NFSSpace) UnmarshalJSON(b []byte) error {
@@ -46,8 +43,8 @@ func (n *NFSSpace) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created *parseabletime.ParseableTime `json:"created"`
-		Updated *parseabletime.ParseableTime `json:"updated"`
+		Created *time.Time `json:"created"`
+		Updated *time.Time `json:"updated"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -56,26 +53,36 @@ func (n *NFSSpace) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = (*time.Time)(p.Created)
-	n.Updated = (*time.Time)(p.Updated)
+	n.Created = p.Created
+	n.Updated = p.Updated
 
 	return nil
 }
 
 func (n NFSSpace) GetCreateOptions() NFSSpaceCreateOptions {
-	return NFSSpaceCreateOptions{
+	result := NFSSpaceCreateOptions{
 		Label:       n.Label,
-		Description: n.Description,
-		Tags:        n.Tags,
+		Description: Pointer(n.Description),
 	}
+
+	if n.Tags != nil {
+		result.Tags = Pointer(n.Tags)
+	}
+
+	return result
 }
 
 func (n NFSSpace) GetUpdateOptions() NFSSpaceUpdateOptions {
-	return NFSSpaceUpdateOptions{
-		Label:       n.Label,
-		Description: n.Description,
-		Tags:        n.Tags,
+	result := NFSSpaceUpdateOptions{
+		Label:       Pointer(n.Label),
+		Description: Pointer(n.Description),
 	}
+
+	if n.Tags != nil {
+		result.Tags = Pointer(n.Tags)
+	}
+
+	return result
 }
 
 func (c *Client) ListNFSSpaces(ctx context.Context, opts *ListOptions) ([]NFSSpace, error) {

@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSProtocolVersion string
@@ -19,49 +17,45 @@ type NFSFilesystemStatus string
 const (
 	NFSFilesystemStatusCreating NFSFilesystemStatus = "creating"
 	NFSFilesystemStatusActive   NFSFilesystemStatus = "active"
+	NFSFilesystemStatusUpdating NFSFilesystemStatus = "updating"
 	NFSFilesystemStatusDeleting NFSFilesystemStatus = "deleting"
-	NFSFilesystemStatusFailed   NFSFilesystemStatus = "failed"
+	NFSFilesystemStatusError    NFSFilesystemStatus = "error"
 )
 
 type NFSFilesystem struct {
-	ID                 string               `json:"id"`
-	SpaceID            string               `json:"space_id"`
+	ID                 int                  `json:"id"`
+	SpaceID            int                  `json:"space_id"`
 	Label              string               `json:"label"`
 	Region             string               `json:"region"`
 	ProtocolVersions   []NFSProtocolVersion `json:"protocol_versions"`
 	Status             NFSFilesystemStatus  `json:"status"`
-	MountTarget        string               `json:"mount_target"`
+	MountTargetIPs     []string             `json:"mount_target_ips"`
+	MountTargetFQDN    *string              `json:"mount_target_fqdn"`
 	SnapshotUsageBytes *int64               `json:"snapshot_usage_bytes"`
 	LDAPConfigID       *string              `json:"ldap_config_id"`
-	SourceSnapshotID   *string              `json:"source_snapshot_id"`
+	SourceSnapshotID   *int                 `json:"source_snapshot_id"`
 	Created            *time.Time           `json:"-"`
 	Updated            *time.Time           `json:"-"`
 	Tags               []string             `json:"tags"`
+	Stats              NFSFilesystemStats   `json:"stats"`
 }
 
 type NFSFilesystemCreateOptions struct {
-	Label            string               `json:"label"`
-	Region           string               `json:"region"`
-	ProtocolVersions []NFSProtocolVersion `json:"protocol_versions,omitzero"`
-	Tags             []string             `json:"tags,omitzero"`
+	Label            string                `json:"label"`
+	Region           string                `json:"region"`
+	ProtocolVersions *[]NFSProtocolVersion `json:"protocol_versions,omitzero"`
+	Tags             *[]string             `json:"tags,omitzero"`
 }
 
 type NFSFilesystemUpdateOptions struct {
-	Label string   `json:"label,omitzero"`
-	Tags  []string `json:"tags,omitzero"`
+	Label *string   `json:"label,omitzero"`
+	Tags  *[]string `json:"tags,omitzero"`
 }
 
 type NFSFilesystemStats struct {
-	FilesystemID               string     `json:"filesystem_id"`
-	ReadThroughputBytesPerSec  int64      `json:"read_throughput_bytes_per_sec"`
-	WriteThroughputBytesPerSec int64      `json:"write_throughput_bytes_per_sec"`
-	ReadIOPS                   int        `json:"read_iops"`
-	WriteIOPS                  int        `json:"write_iops"`
-	UsedCapacityBytes          int64      `json:"used_capacity_bytes"`
-	FreeCapacityBytes          int64      `json:"free_capacity_bytes"`
-	TotalInodes                int64      `json:"total_inodes"`
-	AvailableInodes            int64      `json:"available_inodes"`
-	CollectedAt                *time.Time `json:"-"`
+	UsedCapacityBytes *int64     `json:"used_capacity_bytes"`
+	MaxCapacityBytes  *int64     `json:"max_capacity_bytes"`
+	CollectedAt       *time.Time `json:"-"`
 }
 
 type NFSFilesystemListQueryOptions struct {
@@ -75,8 +69,8 @@ func (n *NFSFilesystem) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created *parseabletime.ParseableTime `json:"created"`
-		Updated *parseabletime.ParseableTime `json:"updated"`
+		Created *time.Time `json:"created"`
+		Updated *time.Time `json:"updated"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -85,8 +79,8 @@ func (n *NFSFilesystem) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = (*time.Time)(p.Created)
-	n.Updated = (*time.Time)(p.Updated)
+	n.Created = p.Created
+	n.Updated = p.Updated
 
 	return nil
 }
@@ -97,7 +91,7 @@ func (n *NFSFilesystemStats) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		CollectedAt *parseabletime.ParseableTime `json:"collected_at"`
+		CollectedAt *time.Time `json:"collected_at"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -106,25 +100,38 @@ func (n *NFSFilesystemStats) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.CollectedAt = (*time.Time)(p.CollectedAt)
+	n.CollectedAt = p.CollectedAt
 
 	return nil
 }
 
 func (n NFSFilesystem) GetCreateOptions() NFSFilesystemCreateOptions {
-	return NFSFilesystemCreateOptions{
-		Label:            n.Label,
-		Region:           n.Region,
-		ProtocolVersions: n.ProtocolVersions,
-		Tags:             n.Tags,
+	result := NFSFilesystemCreateOptions{
+		Label:  n.Label,
+		Region: n.Region,
 	}
+
+	if n.ProtocolVersions != nil {
+		result.ProtocolVersions = Pointer(n.ProtocolVersions)
+	}
+
+	if n.Tags != nil {
+		result.Tags = Pointer(n.Tags)
+	}
+
+	return result
 }
 
 func (n NFSFilesystem) GetUpdateOptions() NFSFilesystemUpdateOptions {
-	return NFSFilesystemUpdateOptions{
-		Label: n.Label,
-		Tags:  n.Tags,
+	result := NFSFilesystemUpdateOptions{
+		Label: Pointer(n.Label),
 	}
+
+	if n.Tags != nil {
+		result.Tags = Pointer(n.Tags)
+	}
+
+	return result
 }
 
 func (c *Client) ListNFSFilesystems(ctx context.Context, spaceID string, opts *ListOptions) ([]NFSFilesystem, error) {
@@ -167,16 +174,4 @@ func (c *Client) UpdateNFSFilesystem(
 
 func (c *Client) DeleteNFSFilesystem(ctx context.Context, spaceID string, filesystemID string) error {
 	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%s/filesystems/%s", spaceID, filesystemID))
-}
-
-func (c *Client) GetNFSFilesystemStats(
-	ctx context.Context,
-	spaceID string,
-	filesystemID string,
-) (*NFSFilesystemStats, error) {
-	return doGETRequest[NFSFilesystemStats](
-		ctx,
-		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/stats", spaceID, filesystemID),
-	)
 }

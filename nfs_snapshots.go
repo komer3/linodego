@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSSnapshotStatus string
@@ -13,8 +11,9 @@ type NFSSnapshotStatus string
 const (
 	NFSSnapshotStatusCreating NFSSnapshotStatus = "creating"
 	NFSSnapshotStatusActive   NFSSnapshotStatus = "active"
-	NFSSnapshotStatusFailed   NFSSnapshotStatus = "failed"
+	NFSSnapshotStatusUpdating NFSSnapshotStatus = "updating"
 	NFSSnapshotStatusDeleting NFSSnapshotStatus = "deleting"
+	NFSSnapshotStatusError    NFSSnapshotStatus = "error"
 )
 
 type NFSSnapshotSource string
@@ -25,32 +24,40 @@ const (
 )
 
 type NFSSnapshot struct {
-	ID                  string            `json:"id"`
-	FilesystemID        string            `json:"filesystem_id"`
-	SpaceID             string            `json:"space_id"`
+	ID                  int               `json:"id"`
+	FilesystemID        int               `json:"filesystem_id"`
+	SpaceID             int               `json:"space_id"`
 	Label               string            `json:"label"`
 	Status              NFSSnapshotStatus `json:"status"`
 	Created             *time.Time        `json:"-"`
 	Expiration          *time.Time        `json:"-"`
 	Locked              bool              `json:"locked"`
 	Source              NFSSnapshotSource `json:"source"`
-	PolicyID            *string           `json:"policy_id"`
+	PolicyID            *int              `json:"policy_id"`
 	SizeBytes           int64             `json:"size_bytes"`
 	AggregatedSizeBytes int64             `json:"aggregated_size_bytes"`
+	Tags                []string          `json:"tags"`
 }
 
 type NFSSnapshotCreateOptions struct {
-	Label      string  `json:"label"`
-	Expiration *string `json:"expiration,omitzero"`
-	Locked     *bool   `json:"locked,omitzero"`
+	Label      string    `json:"label"`
+	Expiration **string  `json:"expiration,omitzero"`
+	Locked     *bool     `json:"locked,omitzero"`
+	Tags       *[]string `json:"tags,omitzero"`
+}
+
+type NFSSnapshotUpdateOptions struct {
+	Expiration **string  `json:"expiration,omitzero"`
+	Locked     *bool     `json:"locked,omitzero"`
+	Tags       *[]string `json:"tags,omitzero"`
 }
 
 type NFSSnapshotCloneOptions struct {
-	Label   string   `json:"label"`
-	Region  string   `json:"region"`
-	SpaceID string   `json:"space_id,omitzero"`
-	SizeGib *int     `json:"size_gib,omitzero"`
-	Tags    []string `json:"tags,omitzero"`
+	Label   string    `json:"label"`
+	Region  string    `json:"region"`
+	SpaceID **int     `json:"space_id,omitzero"`
+	SizeGib **int     `json:"size_gib,omitzero"`
+	Tags    *[]string `json:"tags,omitzero"`
 }
 
 func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
@@ -59,8 +66,8 @@ func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created    *parseabletime.ParseableTime `json:"created"`
-		Expiration *parseabletime.ParseableTime `json:"expiration"`
+		Created    *time.Time `json:"created"`
+		Expiration *time.Time `json:"expiration"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -69,8 +76,8 @@ func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = (*time.Time)(p.Created)
-	n.Expiration = (*time.Time)(p.Expiration)
+	n.Created = p.Created
+	n.Expiration = p.Expiration
 
 	return nil
 }
@@ -121,6 +128,21 @@ func (c *Client) DeleteNFSSnapshot(ctx context.Context, spaceID string, filesyst
 		ctx,
 		c,
 		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s", spaceID, filesystemID, snapshotID),
+	)
+}
+
+func (c *Client) UpdateNFSSnapshot(
+	ctx context.Context,
+	spaceID string,
+	filesystemID string,
+	snapshotID string,
+	opts NFSSnapshotUpdateOptions,
+) (*NFSSnapshot, error) {
+	return doPUTRequest[NFSSnapshot](
+		ctx,
+		c,
+		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s", spaceID, filesystemID, snapshotID),
+		opts,
 	)
 }
 

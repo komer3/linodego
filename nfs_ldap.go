@@ -4,20 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-
-	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSLDAPConfigStatus string
 
 const (
 	NFSLDAPConfigStatusActive      NFSLDAPConfigStatus = "active"
+	NFSLDAPConfigStatusUpdating    NFSLDAPConfigStatus = "updating"
 	NFSLDAPConfigStatusUnreachable NFSLDAPConfigStatus = "unreachable"
 	NFSLDAPConfigStatusError       NFSLDAPConfigStatus = "error"
 )
 
 type NFSLDAPConfig struct {
-	SpaceID         string              `json:"space_id"`
+	SpaceID         int                 `json:"space_id"`
 	URL             string              `json:"url"`
 	BaseDN          string              `json:"base_dn"`
 	BindDN          string              `json:"bind_dn"`
@@ -27,18 +26,21 @@ type NFSLDAPConfig struct {
 	UIDAttribute    string              `json:"uid_attribute"`
 	GIDAttribute    string              `json:"gid_attribute"`
 	Status          NFSLDAPConfigStatus `json:"status"`
+	Created         *time.Time          `json:"-"`
+	Updated         *time.Time          `json:"-"`
+	Verified        *time.Time          `json:"-"`
 }
 
 type NFSLDAPConfigUpsertOptions struct {
-	URL             string  `json:"url"`
-	BaseDN          string  `json:"base_dn"`
-	BindDN          string  `json:"bind_dn"`
-	BindPassword    string  `json:"bind_password"`
-	TLSCACert       *string `json:"tls_ca_cert,omitzero"`
-	UserSearchBase  string  `json:"user_search_base"`
-	GroupSearchBase string  `json:"group_search_base"`
-	UIDAttribute    string  `json:"uid_attribute,omitzero"`
-	GIDAttribute    string  `json:"gid_attribute,omitzero"`
+	URL             *string  `json:"url,omitzero"`
+	BaseDN          *string  `json:"base_dn,omitzero"`
+	BindDN          *string  `json:"bind_dn,omitzero"`
+	BindPassword    *string  `json:"bind_password,omitzero"`
+	TLSCACert       **string `json:"tls_ca_cert,omitzero"`
+	UserSearchBase  *string  `json:"user_search_base,omitzero"`
+	GroupSearchBase *string  `json:"group_search_base,omitzero"`
+	UIDAttribute    *string  `json:"uid_attribute,omitzero"`
+	GIDAttribute    *string  `json:"gid_attribute,omitzero"`
 }
 
 type NFSLDAPTestResult struct {
@@ -46,16 +48,18 @@ type NFSLDAPTestResult struct {
 	BindSuccess bool       `json:"bind_success"`
 	LatencyMS   int        `json:"latency_ms"`
 	Message     string     `json:"message"`
-	TestedAt    *time.Time `json:"-"`
+	Verified    *time.Time `json:"-"`
 }
 
-func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
-	type Mask NFSLDAPTestResult
+func (n *NFSLDAPConfig) UnmarshalJSON(b []byte) error {
+	type Mask NFSLDAPConfig
 
 	p := struct {
 		*Mask
 
-		TestedAt *parseabletime.ParseableTime `json:"tested_at"`
+		Created  *time.Time `json:"created"`
+		Updated  *time.Time `json:"updated"`
+		Verified *time.Time `json:"verified"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -64,7 +68,29 @@ func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.TestedAt = (*time.Time)(p.TestedAt)
+	n.Created = p.Created
+	n.Updated = p.Updated
+	n.Verified = p.Verified
+
+	return nil
+}
+
+func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
+	type Mask NFSLDAPTestResult
+
+	p := struct {
+		*Mask
+
+		Verified *time.Time `json:"verified"`
+	}{
+		Mask: (*Mask)(n),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	n.Verified = p.Verified
 
 	return nil
 }

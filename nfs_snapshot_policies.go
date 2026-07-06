@@ -24,7 +24,7 @@ const (
 )
 
 type NFSSnapshotPolicy struct {
-	FilesystemID string                     `json:"filesystem_id"`
+	FilesystemID int                        `json:"filesystem_id"`
 	Enabled      bool                       `json:"enabled"`
 	NamePrefix   string                     `json:"name_prefix"`
 	Schedules    []NFSSnapshotScheduleEntry `json:"schedules"`
@@ -32,17 +32,17 @@ type NFSSnapshotPolicy struct {
 
 type NFSSnapshotScheduleEntry struct {
 	Frequency  NFSSnapshotFrequency          `json:"frequency"`
-	Minute     *int                          `json:"minute"`
-	Hour       *int                          `json:"hour"`
-	DayOfWeek  *NFSSnapshotScheduleDayOfWeek `json:"day_of_week"`
-	DayOfMonth *int                          `json:"day_of_month"`
+	Minute     *int                          `json:"minute,omitzero"`
+	Hour       *int                          `json:"hour,omitzero"`
+	DayOfWeek  *NFSSnapshotScheduleDayOfWeek `json:"day_of_week,omitzero"`
+	DayOfMonth *int                          `json:"day_of_month,omitzero"`
 	Retain     int                           `json:"retain"`
 }
 
 type NFSSnapshotPolicyUpdateOptions struct {
-	Enabled    bool                       `json:"enabled"`
-	NamePrefix string                     `json:"name_prefix,omitzero"`
-	Schedules  []NFSSnapshotScheduleEntry `json:"schedules"`
+	Enabled    *bool                       `json:"enabled,omitzero"`
+	NamePrefix string                      `json:"name_prefix"`
+	Schedules  *[]NFSSnapshotScheduleEntry `json:"schedules,omitzero"`
 }
 
 func (c *Client) GetNFSSnapshotPolicy(
