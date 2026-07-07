@@ -146,6 +146,161 @@ func (client Client) WaitForVolumeLinodeID(ctx context.Context, volumeID int, li
 	)
 }
 
+// WaitForNFSSpaceStatus waits for the NFS Space to reach the desired state
+// before returning.
+func (client Client) WaitForNFSSpaceStatus(ctx context.Context, spaceID string, status NFSSpaceStatus) (*NFSSpace, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSSpace, bool, error) {
+			space, err := client.GetNFSSpace(ctx, spaceID)
+			if err != nil {
+				return space, false, err
+			}
+
+			return space, space.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Space %s status %s: %w", spaceID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSFilesystemStatus waits for the NFS Filesystem to reach the desired state
+// before returning.
+func (client Client) WaitForNFSFilesystemStatus(
+	ctx context.Context,
+	spaceID string,
+	filesystemID string,
+	status NFSFilesystemStatus,
+) (*NFSFilesystem, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSFilesystem, bool, error) {
+			filesystem, err := client.GetNFSFilesystem(ctx, spaceID, filesystemID)
+			if err != nil {
+				return filesystem, false, err
+			}
+
+			return filesystem, filesystem.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Filesystem %s status %s: %w", filesystemID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSSpaceAccessPolicyStatus waits for the NFS Space Access Policy to reach the desired state
+// before returning.
+func (client Client) WaitForNFSSpaceAccessPolicyStatus(
+	ctx context.Context,
+	spaceID string,
+	status NFSAccessPolicyStatus,
+) (*NFSSpaceAccessPolicy, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSSpaceAccessPolicy, bool, error) {
+			policy, err := client.GetNFSSpaceAccessPolicy(ctx, spaceID)
+			if err != nil {
+				return policy, false, err
+			}
+
+			return policy, policy.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Space Access Policy %s status %s: %w", spaceID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSFilesystemAccessPolicyStatus waits for the NFS Filesystem Access Policy to reach the desired state
+// before returning.
+func (client Client) WaitForNFSFilesystemAccessPolicyStatus(
+	ctx context.Context,
+	spaceID string,
+	filesystemID string,
+	status NFSAccessPolicyStatus,
+) (*NFSFilesystemAccessPolicy, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSFilesystemAccessPolicy, bool, error) {
+			policy, err := client.GetNFSFilesystemAccessPolicy(ctx, spaceID, filesystemID)
+			if err != nil {
+				return policy, false, err
+			}
+
+			return policy, policy.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Filesystem Access Policy %s status %s: %w", filesystemID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSQuotaStatus waits for the NFS Quota to reach the desired state
+// before returning.
+func (client Client) WaitForNFSQuotaStatus(
+	ctx context.Context,
+	spaceID string,
+	filesystemID string,
+	status NFSQuotaStatus,
+) (*NFSQuota, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSQuota, bool, error) {
+			quota, err := client.GetNFSQuota(ctx, spaceID, filesystemID)
+			if err != nil {
+				return quota, false, err
+			}
+
+			return quota, quota.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Quota %s status %s: %w", filesystemID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSLDAPConfigStatus waits for the NFS LDAP Config to reach the desired state
+// before returning.
+func (client Client) WaitForNFSLDAPConfigStatus(
+	ctx context.Context,
+	spaceID string,
+	status NFSLDAPConfigStatus,
+) (*NFSLDAPConfig, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSLDAPConfig, bool, error) {
+			config, err := client.GetNFSLDAPConfig(ctx, spaceID)
+			if err != nil {
+				return config, false, err
+			}
+
+			return config, config.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS LDAP Config %s status %s: %w", spaceID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSSnapshotStatus waits for the NFS Snapshot to reach the desired state
+// before returning.
+func (client Client) WaitForNFSSnapshotStatus(
+	ctx context.Context,
+	spaceID string,
+	filesystemID string,
+	snapshotID string,
+	status NFSSnapshotStatus,
+) (*NFSSnapshot, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSSnapshot, bool, error) {
+			snapshot, err := client.GetNFSSnapshot(ctx, spaceID, filesystemID, snapshotID)
+			if err != nil {
+				return snapshot, false, err
+			}
+
+			return snapshot, snapshot.Status == status, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Snapshot %s status %s: %w", snapshotID, status, ctx.Err())
+		},
+	)
+}
+
 // WaitForLKEClusterStatus waits for the LKECluster to reach the desired state
 // before returning.
 func (client Client) WaitForLKEClusterStatus(ctx context.Context, clusterID int, status LKEClusterStatus) (*LKECluster, error) {
