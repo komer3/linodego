@@ -44,34 +44,34 @@ func (n *NFSHomeDirectoryConfig) UnmarshalJSON(b []byte) error {
 
 func (c *Client) GetNFSHomeDirectoryConfig(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 ) (*NFSHomeDirectoryConfig, error) {
 	return doGETRequest[NFSHomeDirectoryConfig](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/home-directory", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/home-directory", spaceID, filesystemID),
 	)
 }
 
 func (c *Client) UpsertNFSHomeDirectoryConfig(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSHomeDirectoryConfigUpdateOptions,
 ) (*NFSHomeDirectoryConfig, error) {
 	return doPUTRequest[NFSHomeDirectoryConfig](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/home-directory", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/home-directory", spaceID, filesystemID),
 		opts,
 	)
 }
 
-func (c *Client) DeleteNFSHomeDirectoryConfig(ctx context.Context, spaceID string, filesystemID string) error {
+func (c *Client) DeleteNFSHomeDirectoryConfig(ctx context.Context, spaceID int, filesystemID int) error {
 	return doDELETERequest(
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/home-directory", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/home-directory", spaceID, filesystemID),
 	)
 }

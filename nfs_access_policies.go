@@ -143,40 +143,40 @@ func (n *NFSFilesystemAccessPolicy) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (c *Client) GetNFSSpaceAccessPolicy(ctx context.Context, spaceID string) (*NFSSpaceAccessPolicy, error) {
-	return doGETRequest[NFSSpaceAccessPolicy](ctx, c, formatAPIPath("nfs/spaces/%s/access-policy", spaceID))
+func (c *Client) GetNFSSpaceAccessPolicy(ctx context.Context, spaceID int) (*NFSSpaceAccessPolicy, error) {
+	return doGETRequest[NFSSpaceAccessPolicy](ctx, c, formatAPIPath("nfs/spaces/%d/access-policy", spaceID))
 }
 
 func (c *Client) UpdateNFSSpaceAccessPolicy(
 	ctx context.Context,
-	spaceID string,
+	spaceID int,
 	opts NFSSpaceAccessPolicyUpdateOptions,
 ) (*NFSSpaceAccessPolicy, error) {
-	return doPUTRequest[NFSSpaceAccessPolicy](ctx, c, formatAPIPath("nfs/spaces/%s/access-policy", spaceID), opts)
+	return doPUTRequest[NFSSpaceAccessPolicy](ctx, c, formatAPIPath("nfs/spaces/%d/access-policy", spaceID), opts)
 }
 
 func (c *Client) GetNFSFilesystemAccessPolicy(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 ) (*NFSFilesystemAccessPolicy, error) {
 	return doGETRequest[NFSFilesystemAccessPolicy](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/access-policy", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/access-policy", spaceID, filesystemID),
 	)
 }
 
 func (c *Client) UpdateNFSFilesystemAccessPolicy(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSFilesystemAccessPolicyUpdateOptions,
 ) (*NFSFilesystemAccessPolicy, error) {
 	return doPUTRequest[NFSFilesystemAccessPolicy](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/access-policy", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/access-policy", spaceID, filesystemID),
 		opts,
 	)
 }

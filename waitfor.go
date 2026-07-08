@@ -148,7 +148,7 @@ func (client Client) WaitForVolumeLinodeID(ctx context.Context, volumeID int, li
 
 // WaitForNFSSpaceStatus waits for the NFS Space to reach the desired state
 // before returning.
-func (client Client) WaitForNFSSpaceStatus(ctx context.Context, spaceID string, status NFSSpaceStatus) (*NFSSpace, error) {
+func (client Client) WaitForNFSSpaceStatus(ctx context.Context, spaceID int, status NFSSpaceStatus) (*NFSSpace, error) {
 	return poll(ctx, &client,
 		func(ctx context.Context) (*NFSSpace, bool, error) {
 			space, err := client.GetNFSSpace(ctx, spaceID)
@@ -159,7 +159,7 @@ func (client Client) WaitForNFSSpaceStatus(ctx context.Context, spaceID string, 
 			return space, space.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Space %s status %s: %w", spaceID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Space %d status %s: %w", spaceID, status, ctx.Err())
 		},
 	)
 }
@@ -168,8 +168,8 @@ func (client Client) WaitForNFSSpaceStatus(ctx context.Context, spaceID string, 
 // before returning.
 func (client Client) WaitForNFSFilesystemStatus(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	status NFSFilesystemStatus,
 ) (*NFSFilesystem, error) {
 	return poll(ctx, &client,
@@ -182,7 +182,7 @@ func (client Client) WaitForNFSFilesystemStatus(
 			return filesystem, filesystem.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Filesystem %s status %s: %w", filesystemID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Filesystem %d status %s: %w", filesystemID, status, ctx.Err())
 		},
 	)
 }
@@ -191,7 +191,7 @@ func (client Client) WaitForNFSFilesystemStatus(
 // before returning.
 func (client Client) WaitForNFSSpaceAccessPolicyStatus(
 	ctx context.Context,
-	spaceID string,
+	spaceID int,
 	status NFSAccessPolicyStatus,
 ) (*NFSSpaceAccessPolicy, error) {
 	return poll(ctx, &client,
@@ -204,7 +204,7 @@ func (client Client) WaitForNFSSpaceAccessPolicyStatus(
 			return policy, policy.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Space Access Policy %s status %s: %w", spaceID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Space Access Policy %d status %s: %w", spaceID, status, ctx.Err())
 		},
 	)
 }
@@ -213,8 +213,8 @@ func (client Client) WaitForNFSSpaceAccessPolicyStatus(
 // before returning.
 func (client Client) WaitForNFSFilesystemAccessPolicyStatus(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	status NFSAccessPolicyStatus,
 ) (*NFSFilesystemAccessPolicy, error) {
 	return poll(ctx, &client,
@@ -227,7 +227,7 @@ func (client Client) WaitForNFSFilesystemAccessPolicyStatus(
 			return policy, policy.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Filesystem Access Policy %s status %s: %w", filesystemID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Filesystem Access Policy %d status %s: %w", filesystemID, status, ctx.Err())
 		},
 	)
 }
@@ -236,8 +236,8 @@ func (client Client) WaitForNFSFilesystemAccessPolicyStatus(
 // before returning.
 func (client Client) WaitForNFSQuotaStatus(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	status NFSQuotaStatus,
 ) (*NFSQuota, error) {
 	return poll(ctx, &client,
@@ -250,7 +250,7 @@ func (client Client) WaitForNFSQuotaStatus(
 			return quota, quota.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Quota %s status %s: %w", filesystemID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Quota %d status %s: %w", filesystemID, status, ctx.Err())
 		},
 	)
 }
@@ -259,7 +259,7 @@ func (client Client) WaitForNFSQuotaStatus(
 // before returning.
 func (client Client) WaitForNFSLDAPConfigStatus(
 	ctx context.Context,
-	spaceID string,
+	spaceID int,
 	status NFSLDAPConfigStatus,
 ) (*NFSLDAPConfig, error) {
 	return poll(ctx, &client,
@@ -272,7 +272,7 @@ func (client Client) WaitForNFSLDAPConfigStatus(
 			return config, config.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS LDAP Config %s status %s: %w", spaceID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS LDAP Config %d status %s: %w", spaceID, status, ctx.Err())
 		},
 	)
 }
@@ -281,9 +281,9 @@ func (client Client) WaitForNFSLDAPConfigStatus(
 // before returning.
 func (client Client) WaitForNFSSnapshotStatus(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
-	snapshotID string,
+	spaceID int,
+	filesystemID int,
+	snapshotID int,
 	status NFSSnapshotStatus,
 ) (*NFSSnapshot, error) {
 	return poll(ctx, &client,
@@ -296,7 +296,7 @@ func (client Client) WaitForNFSSnapshotStatus(
 			return snapshot, snapshot.Status == status, nil
 		},
 		func() error {
-			return fmt.Errorf("Error waiting for NFS Snapshot %s status %s: %w", snapshotID, status, ctx.Err())
+			return fmt.Errorf("Error waiting for NFS Snapshot %d status %s: %w", snapshotID, status, ctx.Err())
 		},
 	)
 }

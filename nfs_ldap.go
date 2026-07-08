@@ -95,22 +95,22 @@ func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (c *Client) GetNFSLDAPConfig(ctx context.Context, spaceID string) (*NFSLDAPConfig, error) {
-	return doGETRequest[NFSLDAPConfig](ctx, c, formatAPIPath("nfs/spaces/%s/ldap-config", spaceID))
+func (c *Client) GetNFSLDAPConfig(ctx context.Context, spaceID int) (*NFSLDAPConfig, error) {
+	return doGETRequest[NFSLDAPConfig](ctx, c, formatAPIPath("nfs/spaces/%d/ldap-config", spaceID))
 }
 
 func (c *Client) UpsertNFSLDAPConfig(
 	ctx context.Context,
-	spaceID string,
+	spaceID int,
 	opts NFSLDAPConfigUpsertOptions,
 ) (*NFSLDAPConfig, error) {
-	return doPUTRequest[NFSLDAPConfig](ctx, c, formatAPIPath("nfs/spaces/%s/ldap-config", spaceID), opts)
+	return doPUTRequest[NFSLDAPConfig](ctx, c, formatAPIPath("nfs/spaces/%d/ldap-config", spaceID), opts)
 }
 
-func (c *Client) DeleteNFSLDAPConfig(ctx context.Context, spaceID string) error {
-	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%s/ldap-config", spaceID))
+func (c *Client) DeleteNFSLDAPConfig(ctx context.Context, spaceID int) error {
+	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%d/ldap-config", spaceID))
 }
 
-func (c *Client) TestNFSLDAPConfig(ctx context.Context, spaceID string) (*NFSLDAPTestResult, error) {
-	return doPOSTRequestNoRequestBody[NFSLDAPTestResult](ctx, c, formatAPIPath("nfs/spaces/%s/ldap-config/test", spaceID))
+func (c *Client) TestNFSLDAPConfig(ctx context.Context, spaceID int) (*NFSLDAPTestResult, error) {
+	return doPOSTRequestNoRequestBody[NFSLDAPTestResult](ctx, c, formatAPIPath("nfs/spaces/%d/ldap-config/test", spaceID))
 }

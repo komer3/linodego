@@ -89,18 +89,18 @@ func (c *Client) ListNFSSpaces(ctx context.Context, opts *ListOptions) ([]NFSSpa
 	return getPaginatedResults[NFSSpace](ctx, c, "nfs/spaces", opts)
 }
 
-func (c *Client) GetNFSSpace(ctx context.Context, spaceID string) (*NFSSpace, error) {
-	return doGETRequest[NFSSpace](ctx, c, formatAPIPath("nfs/spaces/%s", spaceID))
+func (c *Client) GetNFSSpace(ctx context.Context, spaceID int) (*NFSSpace, error) {
+	return doGETRequest[NFSSpace](ctx, c, formatAPIPath("nfs/spaces/%d", spaceID))
 }
 
 func (c *Client) CreateNFSSpace(ctx context.Context, opts NFSSpaceCreateOptions) (*NFSSpace, error) {
 	return doPOSTRequest[NFSSpace](ctx, c, "nfs/spaces", opts)
 }
 
-func (c *Client) UpdateNFSSpace(ctx context.Context, spaceID string, opts NFSSpaceUpdateOptions) (*NFSSpace, error) {
-	return doPUTRequest[NFSSpace](ctx, c, formatAPIPath("nfs/spaces/%s", spaceID), opts)
+func (c *Client) UpdateNFSSpace(ctx context.Context, spaceID int, opts NFSSpaceUpdateOptions) (*NFSSpace, error) {
+	return doPUTRequest[NFSSpace](ctx, c, formatAPIPath("nfs/spaces/%d", spaceID), opts)
 }
 
-func (c *Client) DeleteNFSSpace(ctx context.Context, spaceID string) error {
-	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%s", spaceID))
+func (c *Client) DeleteNFSSpace(ctx context.Context, spaceID int) error {
+	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%d", spaceID))
 }

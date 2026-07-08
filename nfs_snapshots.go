@@ -84,79 +84,79 @@ func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
 
 func (c *Client) ListNFSSnapshots(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts *ListOptions,
 ) ([]NFSSnapshot, error) {
 	return getPaginatedResults[NFSSnapshot](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots", spaceID, filesystemID),
 		opts,
 	)
 }
 
 func (c *Client) GetNFSSnapshot(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
-	snapshotID string,
+	spaceID int,
+	filesystemID int,
+	snapshotID int,
 ) (*NFSSnapshot, error) {
 	return doGETRequest[NFSSnapshot](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s", spaceID, filesystemID, snapshotID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots/%d", spaceID, filesystemID, snapshotID),
 	)
 }
 
 func (c *Client) CreateNFSSnapshot(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSSnapshotCreateOptions,
 ) (*NFSSnapshot, error) {
 	return doPOSTRequest[NFSSnapshot](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots", spaceID, filesystemID),
 		opts,
 	)
 }
 
-func (c *Client) DeleteNFSSnapshot(ctx context.Context, spaceID string, filesystemID string, snapshotID string) error {
+func (c *Client) DeleteNFSSnapshot(ctx context.Context, spaceID int, filesystemID int, snapshotID int) error {
 	return doDELETERequest(
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s", spaceID, filesystemID, snapshotID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots/%d", spaceID, filesystemID, snapshotID),
 	)
 }
 
 func (c *Client) UpdateNFSSnapshot(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
-	snapshotID string,
+	spaceID int,
+	filesystemID int,
+	snapshotID int,
 	opts NFSSnapshotUpdateOptions,
 ) (*NFSSnapshot, error) {
 	return doPUTRequest[NFSSnapshot](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s", spaceID, filesystemID, snapshotID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots/%d", spaceID, filesystemID, snapshotID),
 		opts,
 	)
 }
 
 func (c *Client) CloneNFSSnapshot(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
-	snapshotID string,
+	spaceID int,
+	filesystemID int,
+	snapshotID int,
 	opts NFSSnapshotCloneOptions,
 ) (*NFSFilesystem, error) {
 	return doPOSTRequest[NFSFilesystem](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshots/%s/clone", spaceID, filesystemID, snapshotID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshots/%d/clone", spaceID, filesystemID, snapshotID),
 		opts,
 	)
 }

@@ -134,44 +134,44 @@ func (n NFSFilesystem) GetUpdateOptions() NFSFilesystemUpdateOptions {
 	return result
 }
 
-func (c *Client) ListNFSFilesystems(ctx context.Context, spaceID string, opts *ListOptions) ([]NFSFilesystem, error) {
-	return getPaginatedResults[NFSFilesystem](ctx, c, formatAPIPath("nfs/spaces/%s/filesystems", spaceID), opts)
+func (c *Client) ListNFSFilesystems(ctx context.Context, spaceID int, opts *ListOptions) ([]NFSFilesystem, error) {
+	return getPaginatedResults[NFSFilesystem](ctx, c, formatAPIPath("nfs/spaces/%d/filesystems", spaceID), opts)
 }
 
-func (c *Client) GetNFSFilesystem(ctx context.Context, spaceID string, filesystemID string) (*NFSFilesystem, error) {
+func (c *Client) GetNFSFilesystem(ctx context.Context, spaceID int, filesystemID int) (*NFSFilesystem, error) {
 	return doGETRequest[NFSFilesystem](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d", spaceID, filesystemID),
 	)
 }
 
-func (c *Client) GetNFSFilesystemByID(ctx context.Context, filesystemID string) (*NFSFilesystem, error) {
-	return doGETRequest[NFSFilesystem](ctx, c, formatAPIPath("nfs/filesystems/%s", filesystemID))
+func (c *Client) GetNFSFilesystemByID(ctx context.Context, filesystemID int) (*NFSFilesystem, error) {
+	return doGETRequest[NFSFilesystem](ctx, c, formatAPIPath("nfs/filesystems/%d", filesystemID))
 }
 
 func (c *Client) CreateNFSFilesystem(
 	ctx context.Context,
-	spaceID string,
+	spaceID int,
 	opts NFSFilesystemCreateOptions,
 ) (*NFSFilesystem, error) {
-	return doPOSTRequest[NFSFilesystem](ctx, c, formatAPIPath("nfs/spaces/%s/filesystems", spaceID), opts)
+	return doPOSTRequest[NFSFilesystem](ctx, c, formatAPIPath("nfs/spaces/%d/filesystems", spaceID), opts)
 }
 
 func (c *Client) UpdateNFSFilesystem(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSFilesystemUpdateOptions,
 ) (*NFSFilesystem, error) {
 	return doPUTRequest[NFSFilesystem](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d", spaceID, filesystemID),
 		opts,
 	)
 }
 
-func (c *Client) DeleteNFSFilesystem(ctx context.Context, spaceID string, filesystemID string) error {
-	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%s/filesystems/%s", spaceID, filesystemID))
+func (c *Client) DeleteNFSFilesystem(ctx context.Context, spaceID int, filesystemID int) error {
+	return doDELETERequest(ctx, c, formatAPIPath("nfs/spaces/%d/filesystems/%d", spaceID, filesystemID))
 }

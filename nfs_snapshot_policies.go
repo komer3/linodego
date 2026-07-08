@@ -47,34 +47,34 @@ type NFSSnapshotPolicyUpdateOptions struct {
 
 func (c *Client) GetNFSSnapshotPolicy(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 ) (*NFSSnapshotPolicy, error) {
 	return doGETRequest[NFSSnapshotPolicy](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshot-policy", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshot-policy", spaceID, filesystemID),
 	)
 }
 
 func (c *Client) UpsertNFSSnapshotPolicy(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSSnapshotPolicyUpdateOptions,
 ) (*NFSSnapshotPolicy, error) {
 	return doPUTRequest[NFSSnapshotPolicy](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshot-policy", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshot-policy", spaceID, filesystemID),
 		opts,
 	)
 }
 
-func (c *Client) DeleteNFSSnapshotPolicy(ctx context.Context, spaceID string, filesystemID string) error {
+func (c *Client) DeleteNFSSnapshotPolicy(ctx context.Context, spaceID int, filesystemID int) error {
 	return doDELETERequest(
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/snapshot-policy", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/snapshot-policy", spaceID, filesystemID),
 	)
 }

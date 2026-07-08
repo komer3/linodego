@@ -134,20 +134,20 @@ func (n *NFSQuota) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (c *Client) GetNFSQuota(ctx context.Context, spaceID string, filesystemID string) (*NFSQuota, error) {
-	return doGETRequest[NFSQuota](ctx, c, formatAPIPath("nfs/spaces/%s/filesystems/%s/quota", spaceID, filesystemID))
+func (c *Client) GetNFSQuota(ctx context.Context, spaceID int, filesystemID int) (*NFSQuota, error) {
+	return doGETRequest[NFSQuota](ctx, c, formatAPIPath("nfs/spaces/%d/filesystems/%d/quota", spaceID, filesystemID))
 }
 
 func (c *Client) UpdateNFSQuota(
 	ctx context.Context,
-	spaceID string,
-	filesystemID string,
+	spaceID int,
+	filesystemID int,
 	opts NFSQuotaUpdateOptions,
 ) (*NFSQuota, error) {
 	return doPUTRequest[NFSQuota](
 		ctx,
 		c,
-		formatAPIPath("nfs/spaces/%s/filesystems/%s/quota", spaceID, filesystemID),
+		formatAPIPath("nfs/spaces/%d/filesystems/%d/quota", spaceID, filesystemID),
 		opts,
 	)
 }
