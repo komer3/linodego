@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSQuotaStatus string
@@ -118,8 +120,8 @@ func (n *NFSQuota) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created *time.Time `json:"created"`
-		Updated *time.Time `json:"updated"`
+		Created *parseabletime.ParseableTime `json:"created"`
+		Updated *parseabletime.ParseableTime `json:"updated"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -128,8 +130,8 @@ func (n *NFSQuota) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = p.Created
-	n.Updated = p.Updated
+	n.Created = (*time.Time)(p.Created)
+	n.Updated = (*time.Time)(p.Updated)
 
 	return nil
 }

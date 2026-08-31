@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSSnapshotStatus string
@@ -66,8 +68,8 @@ func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created    *time.Time `json:"created"`
-		Expiration *time.Time `json:"expiration"`
+		Created    *parseabletime.ParseableTime `json:"created"`
+		Expiration *parseabletime.ParseableTime `json:"expiration"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -76,8 +78,8 @@ func (n *NFSSnapshot) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = p.Created
-	n.Expiration = p.Expiration
+	n.Created = (*time.Time)(p.Created)
+	n.Expiration = (*time.Time)(p.Expiration)
 
 	return nil
 }

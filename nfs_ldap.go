@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSLDAPConfigStatus string
@@ -57,9 +59,9 @@ func (n *NFSLDAPConfig) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created  *time.Time `json:"created"`
-		Updated  *time.Time `json:"updated"`
-		Verified *time.Time `json:"verified"`
+		Created  *parseabletime.ParseableTime `json:"created"`
+		Updated  *parseabletime.ParseableTime `json:"updated"`
+		Verified *parseabletime.ParseableTime `json:"verified"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -68,9 +70,9 @@ func (n *NFSLDAPConfig) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = p.Created
-	n.Updated = p.Updated
-	n.Verified = p.Verified
+	n.Created = (*time.Time)(p.Created)
+	n.Updated = (*time.Time)(p.Updated)
+	n.Verified = (*time.Time)(p.Verified)
 
 	return nil
 }
@@ -81,7 +83,7 @@ func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Verified *time.Time `json:"verified"`
+		Verified *parseabletime.ParseableTime `json:"verified"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -90,7 +92,7 @@ func (n *NFSLDAPTestResult) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Verified = p.Verified
+	n.Verified = (*time.Time)(p.Verified)
 
 	return nil
 }

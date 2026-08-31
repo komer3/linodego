@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+
+	"github.com/linode/linodego/v2/internal/parseabletime"
 )
 
 type NFSProtocolVersion string
@@ -69,8 +71,8 @@ func (n *NFSFilesystem) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		Created *time.Time `json:"created"`
-		Updated *time.Time `json:"updated"`
+		Created *parseabletime.ParseableTime `json:"created"`
+		Updated *parseabletime.ParseableTime `json:"updated"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -79,8 +81,8 @@ func (n *NFSFilesystem) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.Created = p.Created
-	n.Updated = p.Updated
+	n.Created = (*time.Time)(p.Created)
+	n.Updated = (*time.Time)(p.Updated)
 
 	return nil
 }
@@ -91,7 +93,7 @@ func (n *NFSFilesystemStats) UnmarshalJSON(b []byte) error {
 	p := struct {
 		*Mask
 
-		CollectedAt *time.Time `json:"collected_at"`
+		CollectedAt *parseabletime.ParseableTime `json:"collected_at"`
 	}{
 		Mask: (*Mask)(n),
 	}
@@ -100,7 +102,7 @@ func (n *NFSFilesystemStats) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	n.CollectedAt = p.CollectedAt
+	n.CollectedAt = (*time.Time)(p.CollectedAt)
 
 	return nil
 }
