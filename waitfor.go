@@ -179,7 +179,20 @@ func (client Client) WaitForNFSFilesystemStatus(
 				return filesystem, false, err
 			}
 
-			return filesystem, filesystem.Status == status, nil
+			if filesystem.Status == status {
+				return filesystem, true, nil
+			}
+
+			if filesystem.Status == NFSFilesystemStatusError {
+				return filesystem, false, fmt.Errorf(
+					"NFS Filesystem %d reached status %s while waiting for status %s",
+					filesystemID,
+					filesystem.Status,
+					status,
+				)
+			}
+
+			return filesystem, false, nil
 		},
 		func() error {
 			return fmt.Errorf("Error waiting for NFS Filesystem %d status %s: %w", filesystemID, status, ctx.Err())
