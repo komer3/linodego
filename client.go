@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 )
 
@@ -53,17 +51,29 @@ const (
 	APIDefaultCacheExpiration = time.Minute * 15
 )
 
-// Embed the log template files
-//
-//go:embed request_log_template.tmpl
-var requestTemplateStr string
+// Debug log formats. These are deliberately plain fmt formats rather than text/template.
+// Linking the template execution engine disables the Go linker's dead code elimination for
+// methods in every consumer binary (see https://github.com/linode/linodego/issues/1022).
+const (
+	requestLogFormat = `
+============================================================================================
+~~~ REQUEST ~~~
+%v
+HOST: %v
+HEADERS: %v
+BODY: %v
+--------------------------------------------------------------------------------------------`
 
-//go:embed response_log_template.tmpl
-var responseTemplateStr string
-
-var (
-	reqLogTemplate  = template.Must(template.New("request").Parse(requestTemplateStr))
-	respLogTemplate = template.Must(template.New("response").Parse(responseTemplateStr))
+	responseLogFormat = `
+============================================================================================
+~~~ RESPONSE ~~~
+STATUS: %v
+PROTO: %v
+RECEIVED AT: %v
+TIME DURATION: %v
+HEADERS: %v
+BODY: %v
+--------------------------------------------------------------------------------------------`
 )
 
 type RequestLog struct {
@@ -198,13 +208,18 @@ func NewClient(hc *http.Client) (client Client, err error) {
 	}
 
 	certPath, certPathExists := os.LookupEnv(APIHostCert)
-	if certPathExists {
-		if err := client.SetRootCertificate(certPath); err != nil {
-			return Client{}, err
-		}
 
-		if envDebug {
-			log.Printf("[DEBUG] Set API root certificate to %s\n", certPath)
+	if certPathExists { //nolint:nestif
+		if _, ok := client.httpClient.Transport.(*http.Transport); ok {
+			if err := client.SetRootCertificate(certPath); err != nil {
+				return Client{}, err
+			}
+
+			if envDebug {
+				log.Printf("[DEBUG] Set API root certificate to %s\n", certPath)
+			}
+		} else {
+			log.Println("[WARN] Custom root certificate is not supported with a custom transport")
 		}
 	}
 
@@ -466,9 +481,15 @@ func (c *Client) SetRetryAfter(callback RetryAfter) *Client {
 	return c
 }
 
-// SetRetryCount sets the maximum retry attempts before aborting.
+// SetRetryCount sets the number of retries after the initial request before aborting.
+// Negative values are treated as 0 (no retries).
 func (c *Client) SetRetryCount(count int) *Client {
+	if count < 0 {
+		count = 0
+	}
+
 	c.retryCount = count
+
 	return c
 }
 
@@ -514,7 +535,8 @@ func (c *Client) doRequest(ctx context.Context, method, endpoint string, params 
 		err  error
 	)
 
-	for range c.retryCount {
+	// retryCount controls the number of retries after the initial attempt
+	for range c.retryCount + 1 {
 		// createRequest seeks params.Body back to the start, so it's safe to retry.
 		req, err = c.createRequest(ctx, method, endpoint, params)
 		if err != nil {
@@ -725,17 +747,8 @@ func (c *Client) logRequest(req *http.Request) *http.Request {
 		}
 	}
 
-	var logBuf bytes.Buffer
-
-	err := reqLogTemplate.Execute(&logBuf, map[string]any{
-		"Request": reqLog.Request,
-		"Host":    reqLog.Host,
-		"Headers": formatHeaders(reqLog.Headers),
-		"Body":    body,
-	})
-	if err == nil {
-		c.logger.Debugf(sanitizeLogValue(logBuf.String()))
-	}
+	c.logger.Debugf(sanitizeLogValue(fmt.Sprintf(requestLogFormat,
+		reqLog.Request, reqLog.Host, formatHeaders(reqLog.Headers), body)))
 
 	return req
 }
@@ -850,19 +863,9 @@ func (c *Client) logResponse(resp *http.Response, start, end time.Time) *http.Re
 		}
 	}
 
-	var logBuf bytes.Buffer
-
-	err := respLogTemplate.Execute(&logBuf, map[string]any{
-		"Status":       respLog.Status,
-		"Proto":        respLog.Proto,
-		"ReceivedAt":   respLog.ReceivedAt,
-		"TimeDuration": respLog.TimeDuration,
-		"Headers":      formatHeaders(redactHeaders(respLog.Headers)),
-		"Body":         body,
-	})
-	if err == nil {
-		c.logger.Debugf(sanitizeLogValue(logBuf.String()))
-	}
+	c.logger.Debugf(sanitizeLogValue(fmt.Sprintf(responseLogFormat,
+		respLog.Status, respLog.Proto, respLog.ReceivedAt, respLog.TimeDuration,
+		formatHeaders(redactHeaders(respLog.Headers)), body)))
 
 	resp.Body = io.NopCloser(bytes.NewReader(respBody.Bytes()))
 
