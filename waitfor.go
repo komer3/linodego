@@ -215,6 +215,80 @@ func (client Client) WaitForNFSFilesystemStatus(
 	)
 }
 
+// WaitForNFSSpaceAccessPolicyStatus waits for an NFS Space access policy to reach the desired state before returning.
+func (client Client) WaitForNFSSpaceAccessPolicyStatus(
+	ctx context.Context,
+	spaceID int,
+	status NFSAccessPolicyStatus,
+) (*NFSSpaceAccessPolicy, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSSpaceAccessPolicy, bool, error) {
+			policy, err := client.GetNFSSpaceAccessPolicy(ctx, spaceID)
+			if err != nil {
+				return policy, false, err
+			}
+
+			if policy.Status == status {
+				return policy, true, nil
+			}
+
+			if policy.Status == NFSAccessPolicyStatusError {
+				return policy, false, fmt.Errorf(
+					"NFS Space Access Policy %d reached status %s while waiting for status %s",
+					spaceID,
+					policy.Status,
+					status,
+				)
+			}
+
+			return policy, false, nil
+		},
+		func() error {
+			return fmt.Errorf("Error waiting for NFS Space Access Policy %d status %s: %w", spaceID, status, ctx.Err())
+		},
+	)
+}
+
+// WaitForNFSFilesystemAccessPolicyStatus waits for an NFS Filesystem access policy to reach the desired state before returning.
+func (client Client) WaitForNFSFilesystemAccessPolicyStatus(
+	ctx context.Context,
+	spaceID int,
+	filesystemID int,
+	status NFSAccessPolicyStatus,
+) (*NFSFilesystemAccessPolicy, error) {
+	return poll(ctx, &client,
+		func(ctx context.Context) (*NFSFilesystemAccessPolicy, bool, error) {
+			policy, err := client.GetNFSFilesystemAccessPolicy(ctx, spaceID, filesystemID)
+			if err != nil {
+				return policy, false, err
+			}
+
+			if policy.Status == status {
+				return policy, true, nil
+			}
+
+			if policy.Status == NFSAccessPolicyStatusError {
+				return policy, false, fmt.Errorf(
+					"NFS Filesystem Access Policy %d reached status %s while waiting for status %s",
+					filesystemID,
+					policy.Status,
+					status,
+				)
+			}
+
+			return policy, false, nil
+		},
+		func() error {
+			return fmt.Errorf(
+				"Error waiting for NFS Filesystem Access Policy %d status %s: %w",
+				filesystemID,
+				status,
+				ctx.Err(),
+			)
+		},
+	)
+}
+
 // WaitForLKEClusterStatus waits for the LKECluster to reach the desired state
 // before returning.
 func (client Client) WaitForLKEClusterStatus(ctx context.Context, clusterID int, status LKEClusterStatus) (*LKECluster, error) {
